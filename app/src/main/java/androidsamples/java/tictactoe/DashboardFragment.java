@@ -68,9 +68,8 @@ public class DashboardFragment extends Fragment {
         // extract it in GameFragment in a type safe way
         NavDirections action = DashboardFragmentDirections.actionGame(gameType);
         mNavController.navigate(action);
-      };
-
-      // create the dialog
+      };//eufbwige,kruli
+            // create the dialog
       AlertDialog dialog = new AlertDialog.Builder(requireActivity())
           .setTitle(R.string.new_game)
           .setMessage(R.string.new_game_dialog_message)
