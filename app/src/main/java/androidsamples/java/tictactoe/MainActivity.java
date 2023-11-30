@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     if (item.getItemId() == R.id.menu_logout) {
       Log.d(TAG, "logout clicked");
       FirebaseAuth.getInstance().signOut();
-      Toast.makeText(MainActivity.this, "Logged out", Toast.LENGTH_SHORT).show();
+      Toast.makeText(MainActivity.this, "Logging out", Toast.LENGTH_SHORT).show();
       Navigation.findNavController(this, R.id.nav_host_fragment).navigate(R.id.action_need_auth);
       return true;
     }

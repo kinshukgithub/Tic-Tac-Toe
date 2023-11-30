@@ -9,38 +9,32 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
 
 public class LoginFragment extends Fragment {
 
-    private FirebaseAuth auth;
+    private FirebaseAuth authenticate;
     private EditText email, password;
     private DatabaseReference userReference;
-    private ProgressDialog pd;
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        auth = FirebaseAuth.getInstance();
+        authenticate = FirebaseAuth.getInstance();
         // If a user is logged in, go to Dashboard
-        if (auth.getCurrentUser() != null) {
+        if (authenticate.getCurrentUser() != null) {
             NavHostFragment.findNavController(this).navigate(R.id.action_login_successful);
         }
     }
@@ -49,19 +43,19 @@ public class LoginFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
         email = view.findViewById(R.id.edit_email);
-        pd = new ProgressDialog(getContext());
+        progressDialog = new ProgressDialog(getContext());
         password = view.findViewById(R.id.edit_password);
-        pd.setMessage("Loading...");
-        pd.setTitle("Authentication");
+        progressDialog.setMessage("Loading...");
+        progressDialog.setTitle("Authentication");
         view.findViewById(R.id.btn_log_in)
                 .setOnClickListener(v -> {
                     // Logic to Sign in with email and password using Firebase
-                    pd.show();
+                    progressDialog.show();
                     if (email.getText().toString().isEmpty() || password.getText().toString().isEmpty()) {
                         Toast.makeText(getContext(), "Please enter email and password", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    auth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
+                    authenticate.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
                         .addOnCompleteListener(task -> {
                             if (!task.isSuccessful()) {
                                 if (task.getException() instanceof FirebaseAuthUserCollisionException) {
@@ -75,7 +69,7 @@ public class LoginFragment extends Fragment {
                                 Toast.makeText(getContext(), "User Registered", Toast.LENGTH_SHORT).show();
                                 NavHostFragment.findNavController(this).navigate(R.id.action_login_successful);
                             }
-                            pd.dismiss();
+                            progressDialog.dismiss();
                         });
 
                     NavDirections action = LoginFragmentDirections.actionLoginSuccessful();
@@ -92,7 +86,7 @@ public class LoginFragment extends Fragment {
      * @param password The password of the user.
      */
     private void login(String email, String password) {
-        auth.signInWithEmailAndPassword(email, password)
+        authenticate.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Log.i("LOGIN", "SUCCESS");
@@ -104,7 +98,7 @@ public class LoginFragment extends Fragment {
                     Log.i("LOGIN", "FAIL");
                     Toast.makeText(getContext(), "Authentication failed", Toast.LENGTH_SHORT).show();
                 }
-                pd.dismiss();
+                progressDialog.dismiss();
             });
     }
 }
