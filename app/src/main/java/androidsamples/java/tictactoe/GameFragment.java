@@ -245,7 +245,7 @@ public class GameFragment extends Fragment {
                 //display a dialog box with the win text
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext()); //create an alert dialog builder
                 builder.setMessage(R.string.you_win); //set the message to the win text
-                builder.setPositiveButton("Wooohooo!", new DialogInterface.OnClickListener() { //add a positive button
+                builder.setPositiveButton("Congratulations!", new DialogInterface.OnClickListener() { //add a positive button
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mNavController.navigateUp(); //navigate back to the previous fragment
@@ -259,7 +259,7 @@ public class GameFragment extends Fragment {
                 //display a dialog box with the lose text
                 builder = new AlertDialog.Builder(requireContext());
                 builder.setMessage(R.string.you_lose); //set the message to the win text
-                builder.setPositiveButton("Nooooo!", new DialogInterface.OnClickListener() { //add a positive button
+                builder.setPositiveButton("You Lose!", new DialogInterface.OnClickListener() { //add a positive button
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mNavController.navigateUp(); //navigate back to the previous fragment
