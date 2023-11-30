@@ -70,8 +70,6 @@ public class DashboardFragment extends Fragment {
     mNavController = Navigation.findNavController(view);
 
     rv = view.findViewById(R.id.list);
-    won = view.findViewById(R.id.won_score);
-    lost = view.findViewById(R.id.lost_score);
     info = view.findViewById(R.id.open_display);
     //if a user is not logged in, go to LoginFragment
 

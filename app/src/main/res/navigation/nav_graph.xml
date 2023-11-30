@@ -25,6 +25,9 @@
     <argument
         android:name="gameId"
         app:argType="string" />
+    <action
+        android:id="@+id/action_need_auth"
+        app:destination="@id/loginFragment" />
   </fragment>
   <fragment
       android:id="@+id/dashboardFragment"
@@ -32,10 +35,10 @@
       android:label="@string/app_name"
       tools:layout="@layout/fragment_dashboard">
     <action
-        android:id="@+id/action_need_auth"
-        app:destination="@id/loginFragment" />
-    <action
         android:id="@+id/action_game"
         app:destination="@id/gameFragment" />
+    <action
+        android:id="@+id/action_need_auth"
+        app:destination="@id/loginFragment" />
   </fragment>
 </navigation>

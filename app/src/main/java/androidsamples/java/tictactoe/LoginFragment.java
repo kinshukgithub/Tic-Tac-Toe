@@ -39,8 +39,7 @@ public class LoginFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         auth = FirebaseAuth.getInstance();
-        userReference = FirebaseDatabase.getInstance("https://tic-tac-toe-82de0-default-rtdb.firebaseio.com/").getReference("users");
-        //if a user is logged in, go to Dashboard
+        // If a user is logged in, go to Dashboard
         if (auth.getCurrentUser() != null) {
             NavHostFragment.findNavController(this).navigate(R.id.action_login_successful);
         }
@@ -56,7 +55,7 @@ public class LoginFragment extends Fragment {
         pd.setTitle("Authentication");
         view.findViewById(R.id.btn_log_in)
                 .setOnClickListener(v -> {
-                    //sign in logic
+                    // Logic to Sign in with email and password using Firebase
                     pd.show();
                     if (email.getText().toString().isEmpty() || password.getText().toString().isEmpty()) {
                         Toast.makeText(getContext(), "Please enter email and password", Toast.LENGTH_SHORT).show();
@@ -67,7 +66,7 @@ public class LoginFragment extends Fragment {
                             if (!task.isSuccessful()) {
                                 if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                     login(email.getText().toString(), password.getText().toString());
-                                    Log.i("User created", task.getResult().getUser().getUid());
+//                                    Log.i("User created", task.getResult().getUser().getUid());
                                 } else {
                                     Toast.makeText(getContext(), task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     task.getException().printStackTrace();
@@ -75,8 +74,6 @@ public class LoginFragment extends Fragment {
                             } else {
                                 Toast.makeText(getContext(), "User Registered", Toast.LENGTH_SHORT).show();
                                 NavHostFragment.findNavController(this).navigate(R.id.action_login_successful);
-                                userReference.child(task.getResult().getUser().getUid()).child("won").setValue(0);
-                                userReference.child(task.getResult().getUser().getUid()).child("lost").setValue(0);
                             }
                             pd.dismiss();
                         });
@@ -88,6 +85,12 @@ public class LoginFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Logs in the user with the provided email and password.
+     *
+     * @param email The email of the user.
+     * @param password The password of the user.
+     */
     private void login(String email, String password) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
@@ -104,6 +107,4 @@ public class LoginFragment extends Fragment {
                 pd.dismiss();
             });
     }
-
-    // No options menu in login fragment.
 }
