@@ -1,7 +1,6 @@
 package androidsamples.java.tictactoe;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,8 +18,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,107 +28,33 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.Random;
-
-import androidsamples.java.tictactoe.models.GameModel;
-import androidsamples.java.tictactoe.models.UserModel;
 
 public class GameFragment extends Fragment {
     private static final String TAG = "GameFragment";
+    public static final String KEY_GAME = "KEY_GAME";
+    public static final String KEY_GAME_STATUS = "KEY_GAME_STATUS";
     private static final int GRID_SIZE = 9;
-
     private final Button[] mButtons = new Button[GRID_SIZE];
-    private Button quitGame;
+    private TextView tv_your_symbol, tv_opponents_symbol;
     private NavController mNavController;
     private TextView display;
-
-    private boolean isSinglePlayer = true;
-    private String myChar = "X";
-    private String otherChar = "O";
-    private boolean myTurn = true;
-    private String[] gameArray = new String[]{"", "", "", "", "", "", "", "", ""};
-    private boolean gameEnded = false;
+    private boolean isSinglePlayer;
+    private String myChar;
+    private String otherChar;
     private GameModel game;
+    private boolean isHost;
+    private DatabaseReference gameReference, userReference;
 
-    private UserModel user;
-    private boolean isHost = true;
-    private DatabaseReference gameReference;//, userReference;
+    // on screen buttons
+    private Button quitGame;
+    private GameOutcomes gameStatus = GameOutcomes.IN_PROGRESS;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-
-        
-        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
-        Log.d(TAG, "New game type = " + args.getGameType());
-        isSinglePlayer = (args.getGameType().equals("One-Player"));
-        if (!isSinglePlayer) {
-            gameReference = FirebaseDatabase.getInstance("https://tic-tac-toe-fc4a3-default-rtdb.firebaseio.com/").getReference("games").child(args.getGameId());
-            gameReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    game = snapshot.getValue(GameModel.class);
-                    assert game != null;
-                    gameArray = (game.getGameArray()).toArray(new String[9]);
-                    if (game.getTurn() == 1) {
-                        if (game.getHost().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                            isHost = true;
-                            myTurn = true;
-                            myChar = "X";
-                            otherChar = "O";
-                        } else {
-                            isHost = false;
-                            myTurn = false;
-                            myChar = "O";
-                            otherChar = "X";
-                        }
-                    } else {
-                        if (!game.getHost().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                            myTurn = true;
-                            myChar = "X";
-                            otherChar = "O";
-                            isHost = false;
-                        } else {
-                            isHost = true;
-                            myTurn = false;
-                            myChar = "O";
-                            otherChar = "X";
-                        }
-                    }
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e("Game setup error", error.getMessage());
-                }
-            });
-        }
-
-        /**
-         * A callback for handling the back button press event.
-         */
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                Log.d(TAG, "Back pressed");
-                if (!gameEnded) {
-                    AlertDialog dialog = new AlertDialog.Builder(requireActivity())
-                            .setTitle(R.string.confirm)
-                            .setMessage(R.string.forfeit_game_dialog_message)
-                            .setPositiveButton(R.string.yes, (d, which) -> {
-                                mNavController.popBackStack();
-                            })
-                            .setNegativeButton(R.string.cancel, (d, which) -> d.dismiss())
-                            .create();
-                    dialog.show();
-                } else {
-                    assert getParentFragment() != null;
-                    NavHostFragment.findNavController(getParentFragment()).navigateUp();
-                }
-            }
-        };
+        setHasOptionsMenu(true); // Needed to display the action menu for this fragment
+        // Handle the back press by adding a confirmation dialog
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
@@ -142,27 +68,114 @@ public class GameFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        display = view.findViewById(R.id.display_tv);
-        quitGame = view.findViewById(R.id.back_btn);
-        quitGame.setOnClickListener(v -> getActivity().onBackPressed());
-        if (!isSinglePlayer) {
-            gameReference.child("isOpen").setValue(false);
-            boolean check = false;
-            for (String s : gameArray) {
-                if (!s.isEmpty()) {
-                    check = true;
-                    break;
+        initialize_views(view);
+        if( savedInstanceState != null){
+            game = (GameModel) savedInstanceState.getSerializable(KEY_GAME);
+            gameStatus = (GameOutcomes) savedInstanceState.getSerializable(KEY_GAME_STATUS);
+            updateUI();
+            tv_your_symbol.setText( "");
+            tv_opponents_symbol.setText( "");
+            if( gameStatus != GameOutcomes.IN_PROGRESS){
+                for (int i = 0; i < 9; i++) {
+                    mButtons[i].setClickable(false);
+                }
+                quitGame.setText(R.string.go_back);
+                if( gameStatus == GameOutcomes.WON){
+                    display.setText(R.string.you_win);
+                }
+                else if( gameStatus == GameOutcomes.LOST){
+                    display.setText(R.string.you_lose);
+                }
+                else{
+                    display.setText(R.string.draw);
                 }
             }
-            if (!check) {
-                waitForOtherPlayer();
+        }
+        quitGame.setOnClickListener(v -> getActivity().onBackPressed());
+
+        // Extract the argument passed with the action in a type-safe way
+        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
+        Log.d(TAG, "New game type = " + args.getGameType());
+
+        isSinglePlayer = (args.getGameType().equals("One-Player"));
+        userReference = FirebaseDatabase.getInstance(MainActivity.rtdb_url)
+                .getReference("users")
+                .child(FirebaseAuth.getInstance().getCurrentUser()
+                        .getUid());
+        mNavController = Navigation.findNavController(view);
+
+        if( gameStatus == GameOutcomes.IN_PROGRESS ){
+            if (!isSinglePlayer) {
+                gameReference = FirebaseDatabase.getInstance(MainActivity.rtdb_url).getReference("games").child(args.getGameId());
+                gameReference.get().addOnCompleteListener(
+                        new OnCompleteListener<DataSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                                if( task.isSuccessful()){
+                                    game = task.getResult().getValue(GameModel.class);
+                                    assert game != null;
+                                    Log.d( TAG, "Game initialized, Id:\t" + game.getGameId() );
+                                    isHost = game.getHost().equals(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                                    if (isHost) {
+                                        myChar = "X";
+                                        otherChar = "O";
+                                    } else {
+                                        myChar = "O";
+                                        otherChar = "X";
+                                    }
+                                    //get the initial state, regardless whether I am the host or the guest.
+                                    updateUI();
+                                    tv_your_symbol.setText( "Your symbol is:\n" + myChar);
+                                    tv_opponents_symbol.setText( "Opponent's symbol is:\n" + otherChar);
+
+                                    if( !isSinglePlayer && !getItsMyTurn( game.getTurn(), isHost) ) {
+                                        Log.d( TAG, "Not single player, and it's not my turn anywaz");
+                                        //second player has joined, now the game is closed for new players
+                                        game.setIsOpen(false);
+                                        updateGame();
+                                        waitForOtherPlayer();
+                                    }
+                                }
+                                else{
+                                    Log.d( TAG, "Failed to fetch initial game state");
+                                }
+                            }
+                        }
+                );
             }
-        } else {
+            else{//single player
+                isHost = true;
+                myChar = "X";
+                otherChar = "O";
+                //if the game was not loaded from savedInstanceBundle
+                if( game == null){
+                    game = new GameModel( FirebaseAuth.getInstance().getUid(), Integer.toString(0));
+                }
+                tv_your_symbol.setText( "Your symbol is:\n" + myChar);
+                tv_opponents_symbol.setText( "Opponent's symbol is:\n" + otherChar);
+            }
+            //set up on OnClickListeners
+            for (int i = 0; i < mButtons.length; i++) {
+                mButtons[i].setOnClickListener( get_btn_onclick_listener(mButtons[i], i) );
+            }
             display.setText(R.string.your_turn);
         }
 
-        mNavController = Navigation.findNavController(view);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable( KEY_GAME, game);
+        outState.putSerializable( KEY_GAME_STATUS, gameStatus);
+    }
+
+    private void initialize_views(@NonNull View view) {
+        display = view.findViewById(R.id.display_tv);
+        quitGame = view.findViewById(R.id.back_btn);
+
+        tv_your_symbol = view.findViewById( R.id.tv_your_symbol );
+        tv_opponents_symbol = view.findViewById( R.id.tv_opponents_symbol);
 
         mButtons[0] = view.findViewById(R.id.button0);
         mButtons[1] = view.findViewById(R.id.button1);
@@ -175,112 +188,145 @@ public class GameFragment extends Fragment {
         mButtons[6] = view.findViewById(R.id.button6);
         mButtons[7] = view.findViewById(R.id.button7);
         mButtons[8] = view.findViewById(R.id.button8);
-
-        for (int i = 0; i < mButtons.length; i++) {
-            int finalI = i;
-            mButtons[i].setOnClickListener(v -> {
-                if (myTurn) {
-                    Log.d(TAG, "Button " + finalI + " clicked");
-                    ((Button) v).setText(myChar);
-                    gameArray[finalI] = myChar;
-                    v.setClickable(false);
-                    display.setText(R.string.waiting);
-                    if (!isSinglePlayer) {
-                        updateDB();
-                        myTurn = updateTurn(game.getTurn());
-                    }
-                    int win = checkWin();
-                    if (win == 1 || win == -1) {
-                        endGame(win);
-                        return;
-                    } else if (checkDraw()) {
-                        endGame(0);
-                        return;
-                    }
-                    myTurn = !myTurn;
-
-                    if (isSinglePlayer) {
-                        doRoboThings();
-                    } else {
-                        waitForOtherPlayer();
-                    }
-                } else {
-                    Toast.makeText(getContext(), "Please wait for your turn!", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
     }
 
-    /**
-     * Checks if the game is a draw.
-     * 
-     * @return true if the game is a draw, false otherwise.
-     */
+    private void computerMove() {
+        Random rand = new Random();
+        int x = rand.nextInt(9);
+        if (checkDraw()) {
+            endGame(0);
+            return;
+        }
+        while ( ! game.gameArray.get(x).isEmpty() ) x = rand.nextInt(9);
+        Log.i("CHECKING CONDITIONS", "Complete");
+        game.gameArray.set(x, otherChar);
+        mButtons[x].setText(otherChar);
+        mButtons[x].setClickable(false);
+        game.setTurn(  game.getTurn()==1 ? 2 : 1 );
+        display.setText(R.string.your_turn);
+        int win = checkWin();
+        if (win == 1 || win == -1) endGame(win);
+        else if (checkDraw()) endGame(0);
+    }
+
+    private void waitForOtherPlayer() {
+        display.setText(R.string.waiting);
+        gameReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                game = snapshot.getValue(GameModel.class);
+                updateUI();
+                if ( getItsMyTurn( game.getTurn(), isHost) ) {
+                    display.setText(R.string.your_turn);
+                } else {
+                    display.setText(R.string.waiting);
+                }
+                if(game.isForfeited()){
+                    endGame(1);
+                }
+                Log.i("onDataChange","data change detected");
+                int win = checkWin();
+                if (win == 1 || win == -1) endGame(win);
+                else if (checkDraw()) endGame(0);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+    }
+
+    // Sets the turn variable, and updates the games array, isOpen
+    private void updateGame() {
+        gameReference.setValue(game);
+    }
+
     private boolean checkDraw() {
-        if (checkWin() != 0) return false;
-        Log.i("CHECKING WIN IN DRAW", "Complete: " + checkWin());
+        if (checkWin() != 0){
+            return false;
+        }
+
         for (int i = 0; i < 9; i++) {
-            if (gameArray[i].isEmpty()) {
+            if (game.gameArray.get(i).isEmpty()) {
                 return false;
             }
         }
         return true;
     }
 
-    /**
-     * Ends the game and displays the result based on the win parameter.
-     * If win is 1, displays a dialog box with the "You win" message and navigates back to the previous fragment.
-     * If win is -1, displays a dialog box with the "You lose" message and navigates back to the previous fragment.
-     * If win is 0, displays a dialog box with the "Draw" message and navigates back to the previous fragment.
-     * If win is any other value, displays an error message.
-     * Disables the clickable functionality of the game buttons.
-     * Sets the gameEnded flag to true.
-     * Sets the text of the quitGame button to "Go back".
-     * If the game is not single player, updates the database.
-     */
+    int checkWin() {
+        String winChar = "";
+        if (game.gameArray.get(0).equals(game.gameArray.get(1)) && game.gameArray.get(1).equals(game.gameArray.get(2)) && !game.gameArray.get(0).isEmpty())
+            winChar = game.gameArray.get(0);
+        else if (game.gameArray.get(3).equals(game.gameArray.get(4)) && game.gameArray.get(4).equals(game.gameArray.get(5)) && !game.gameArray.get(3).isEmpty())
+            winChar = game.gameArray.get(3);
+        else if (game.gameArray.get(6).equals(game.gameArray.get(7)) && game.gameArray.get(7).equals(game.gameArray.get(8)) && !game.gameArray.get(6).isEmpty())
+            winChar = game.gameArray.get(6);
+        else if (game.gameArray.get(0).equals(game.gameArray.get(3)) && game.gameArray.get(3).equals(game.gameArray.get(6)) && !game.gameArray.get(0).isEmpty())
+            winChar = game.gameArray.get(0);
+        else if (game.gameArray.get(4).equals(game.gameArray.get(1)) && game.gameArray.get(1).equals(game.gameArray.get(7)) && !game.gameArray.get(1).isEmpty())
+            winChar = game.gameArray.get(1);
+        else if (game.gameArray.get(2).equals(game.gameArray.get(5)) && game.gameArray.get(5).equals(game.gameArray.get(8)) && !game.gameArray.get(2).isEmpty())
+            winChar = game.gameArray.get(2);
+        else if (game.gameArray.get(0).equals(game.gameArray.get(4)) && game.gameArray.get(4).equals(game.gameArray.get(8)) && !game.gameArray.get(0).isEmpty())
+            winChar = game.gameArray.get(0);
+        else if (game.gameArray.get(6).equals(game.gameArray.get(4)) && game.gameArray.get(4).equals(game.gameArray.get(2)) && !game.gameArray.get(2).isEmpty())
+            winChar = game.gameArray.get(2);
+        else return 0;
+        Log.i("check win","calculating check win");
+        return (winChar.equals(myChar)) ? 1 : -1;
+    }
+
+    private boolean getItsMyTurn( int turn, boolean isHost){
+        return (turn == 1) == isHost;
+    }
+
+    // sets the text on the buttons according to the gameArray, and sets filled buttons as unclickable
+    private void updateUI() {
+        for (int i = 0; i < 9; i++) {
+            String v = game.gameArray.get(i);
+            if (!v.isEmpty()) {
+                mButtons[i].setText(v);
+                mButtons[i].setClickable(false);
+            }
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_logout, menu);
+        // this action menu is handled in MainActivity
+    }
+
+    // updates user's win/loss count, sets game_over to true, updates game reference, disables all buttons
     private void endGame(int win) {
+        //update the user's win/loss count
         switch (win) {
             case 1:
                 display.setText(R.string.you_win);
-                //display a dialog box with the win text
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext()); //create an alert dialog builder
-                builder.setMessage(R.string.you_win); //set the message to the win text
-                builder.setPositiveButton("Congratulations!", new DialogInterface.OnClickListener() { //add a positive button
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mNavController.navigateUp(); //navigate back to the previous fragment
-                    }
-                });
-                AlertDialog dialog = builder.create(); //create the dialog
-                dialog.show(); //show the dialog on the screen
+                userReference.child("won").get().addOnSuccessListener(
+                        dataSnapshot -> {
+                            int value = Integer.parseInt(dataSnapshot.getValue().toString());
+                            value = value + 1;
+                            dataSnapshot.getRef().getParent().child("won").setValue(value);
+                        }
+                );
+                gameStatus = GameOutcomes.WON;
                 break;
             case -1:
                 display.setText(R.string.you_lose);
-                //display a dialog box with the lose text
-                builder = new AlertDialog.Builder(requireContext());
-                builder.setMessage(R.string.you_lose); //set the message to the win text
-                builder.setPositiveButton("You Lose!", new DialogInterface.OnClickListener() { //add a positive button
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mNavController.navigateUp(); //navigate back to the previous fragment
-                    }
-                });
-                dialog = builder.create();
-                dialog.show(); //show the dialog on the screen
+                userReference.child("lost").get().addOnSuccessListener(
+                        dataSnapshot -> {
+                            int value = Integer.parseInt(dataSnapshot.getValue().toString());
+                            value = value + 1;
+                            dataSnapshot.getRef().getParent().child("lost").setValue(value);
+                        }
+                );
+                gameStatus = GameOutcomes.LOST;
                 break;
             case 0:
                 display.setText(R.string.draw);
-                //display a dialog box with the lose text
-                builder = new AlertDialog.Builder(requireContext());
-                builder.setMessage(R.string.draw); //set the message to the win text
-                builder.setPositiveButton("Better luck next time!", new DialogInterface.OnClickListener() { //add a positive button
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mNavController.navigateUp(); //navigate back to the previous fragment
-                    }
-                });
-                dialog = builder.create();
-                dialog.show(); //show the dialog on the screen
+                gameStatus = GameOutcomes.DRAW;
                 break;
             default:
                 display.setText(R.string.error);
@@ -290,137 +336,86 @@ public class GameFragment extends Fragment {
         for (int i = 0; i < 9; i++) {
             mButtons[i].setClickable(false);
         }
-        gameEnded = true;
         quitGame.setText(R.string.go_back);
+        game.setIsOpen(false);
+        if (!isSinglePlayer) {
+            // Update the game's file
+            updateGame();
+        }
 
-        if (!isSinglePlayer)
-            updateDB();
     }
 
-    /**
-     * Waits for the other player's move and updates the game state accordingly.
-     */
-    private void waitForOtherPlayer() {
+    //    If a user clicks the back button, a dialog to confirm she wants to forfeit the game is shown.
+//    If the user forfeits, it increments her lost count and the opponent’s win count and brings both
+//    to their respective dashboards.
+    private final OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
 
-        display.setText(R.string.waiting);
-        gameReference.addValueEventListener(new ValueEventListener() {
+            if( gameStatus != GameOutcomes.IN_PROGRESS ){
+                //game is over, endGame function has already updated my win/loss count
+                mNavController.popBackStack();
+            }
+            else{
+                //game is not over, but the gentleman is legging it, we will surely penalize him
+                AlertDialog dialog = new AlertDialog.Builder(requireActivity())
+                        .setTitle(R.string.confirm)
+                        .setMessage(R.string.forfeit_game_dialog_message)
+                        .setPositiveButton(R.string.yes, (d, which) -> {
+                            endGame(-1);
+                            if( !isSinglePlayer) {
+                                gameStatus = GameOutcomes.LOST;
+                                // let the other guy know that ze has won
+                                game.setForfeited(true);
+                                updateGame();
+                            }
+                            mNavController.popBackStack();
+                        })
+                        .setNegativeButton(R.string.cancel, (d, which) -> d.dismiss())
+                        .create();
+                dialog.show();
+            }
+        }
+    };
+
+    private View.OnClickListener get_btn_onclick_listener(View v, int i) {
+        return new View.OnClickListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                GameModel l = snapshot.getValue(GameModel.class);
-                game.updateGameArray(l);
-                gameArray = (game.getGameArray()).toArray(new String[9]);
-                updateUI();
-                myTurn = updateTurn(game.getTurn());
-                display.setText(R.string.your_turn);
-                int win = checkWin();
-                if (win == 1 || win == -1) endGame(win);
-                else if (checkDraw()) endGame(0);
+            public void onClick(View view) {
+                Log.d(TAG, "Button " + i + " clicked");
+                // TODO implement listeners
+                if ( getItsMyTurn( game.getTurn(), isHost) ){
+                    ((Button) v).setText(myChar);
+                    game.gameArray.set( i, myChar);
+                    v.setClickable(false);
+                    game.setTurn( game.getTurn()==1?2:1 );
+                    display.setText(R.string.waiting);
+                    if (!isSinglePlayer) {
+                        updateGame();
+                        waitForOtherPlayer();
+                    } else {
+                        int win = checkWin();
+                        if (win == 1 || win == -1) {
+                            endGame(win);
+                            return;
+                        } else if (checkDraw()) {
+                            endGame(0);
+                            return;
+                        }
+                        computerMove();
+                    }
+                    int win = checkWin();
+                    if (win == 1 || win == -1) {
+                        endGame(win);
+                        return;
+                    } else if (checkDraw()) {
+                        endGame(0);
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Please wait for your turn!", Toast.LENGTH_SHORT).show();
+                }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
-
-    /**
-     * Updates the turn based on the current player's turn.
-     * 
-     * @param turn The current player's turn (1 for host, 2 for guest).
-     * @return true if it is the current player's turn, false otherwise.
-     */
-    private boolean updateTurn(int turn) {
-        return (turn == 1) == isHost;
-    }
-
-    /**
-     * Updates the UI by setting the text of the buttons based on the gameArray values.
-     * If a value in the gameArray is not empty, the corresponding button text is set to that value.
-     * Additionally, the clickable property of the buttons is set to false for non-empty values.
-     */
-    private void updateUI() {
-        for (int i = 0; i < 9; i++) {
-            String v = gameArray[i];
-            if (!v.isEmpty()) {
-                mButtons[i].setText(v);
-                mButtons[i].setClickable(false);
-            }
-        }
-    }
-
-    /**
-     * Updates the game state in the database.
-     * - Sets the game array to the current gameArray.
-     * - Sets the isOpen flag to indicate if the game has ended.
-     * - Updates the turn to the next player's turn.
-     */
-    private void updateDB() {
-        gameReference.child("gameArray").setValue(Arrays.asList(gameArray));
-        gameReference.child("isOpen").setValue(!gameEnded);
-        if (game.getTurn() == 1) {
-            game.setTurn(2);
-        } else {
-            game.setTurn(1);
-        }
-        gameReference.child("turn").setValue(game.getTurn());
-    }
-
-    /**
-     * Performs the actions for the AI player in the game.
-     * Generates a random move for the AI player and updates the game state accordingly.
-     * Checks for a draw or win condition after each move.
-     */
-    private void doRoboThings() {
-        Random rand = new Random();
-        int x = rand.nextInt(9);
-        if (checkDraw()) {
-            endGame(0);
-            return;
-        }
-        while (!gameArray[x].isEmpty()) x = rand.nextInt(9);
-        Log.i("CHECKING CONDITIONS", "Complete");
-        gameArray[x] = otherChar;
-        mButtons[x].setText(otherChar);
-        mButtons[x].setClickable(false);
-        myTurn = !myTurn;
-        display.setText(R.string.your_turn);
-        int win = checkWin();
-        if (win == 1 || win == -1) endGame(win);
-        else if (checkDraw()) endGame(0);
-    }
-
-    /**
-     * Checks if there is a winning condition in the tic-tac-toe game.
-     * 
-     * @return 1 if the player wins, -1 if the opponent wins, 0 if there is no winner yet.
-     */
-    private int checkWin() {
-        String winChar = "";
-        if (gameArray[0].equals(gameArray[1]) && gameArray[1].equals(gameArray[2]) && !gameArray[0].isEmpty())
-            winChar = gameArray[0];
-        else if (gameArray[3].equals(gameArray[4]) && gameArray[4].equals(gameArray[5]) && !gameArray[3].isEmpty())
-            winChar = gameArray[3];
-        else if (gameArray[6].equals(gameArray[7]) && gameArray[7].equals(gameArray[8]) && !gameArray[6].isEmpty())
-            winChar = gameArray[6];
-        else if (gameArray[0].equals(gameArray[3]) && gameArray[3].equals(gameArray[6]) && !gameArray[0].isEmpty())
-            winChar = gameArray[0];
-        else if (gameArray[4].equals(gameArray[1]) && gameArray[1].equals(gameArray[7]) && !gameArray[1].isEmpty())
-            winChar = gameArray[1];
-        else if (gameArray[2].equals(gameArray[5]) && gameArray[5].equals(gameArray[8]) && !gameArray[2].isEmpty())
-            winChar = gameArray[2];
-        else if (gameArray[0].equals(gameArray[4]) && gameArray[4].equals(gameArray[8]) && !gameArray[0].isEmpty())
-            winChar = gameArray[0];
-        else if (gameArray[6].equals(gameArray[4]) && gameArray[4].equals(gameArray[2]) && !gameArray[2].isEmpty())
-            winChar = gameArray[2];
-        else return 0;
-
-        return (winChar.equals(myChar)) ? 1 : -1;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_logout, menu);
+        };
     }
 }

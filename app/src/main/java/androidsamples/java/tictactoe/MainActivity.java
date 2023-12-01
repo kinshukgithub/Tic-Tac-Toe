@@ -13,6 +13,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class MainActivity extends AppCompatActivity {
 
+  public static final String rtdb_url = "https://shashank-dhruv-tictactoe-default-rtdb.firebaseio.com/";
+
   private static final String TAG = "MainActivity";
 
   @Override
@@ -28,9 +30,11 @@ public class MainActivity extends AppCompatActivity {
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.menu_logout) {
       Log.d(TAG, "logout clicked");
+      // TODO handle log out
       FirebaseAuth.getInstance().signOut();
-      Toast.makeText(MainActivity.this, "Logging out", Toast.LENGTH_SHORT).show();
+      Toast.makeText(MainActivity.this, "Logged out", Toast.LENGTH_SHORT).show();
       Navigation.findNavController(this, R.id.nav_host_fragment).navigate(R.id.action_need_auth);
+
       return true;
     }
     return super.onOptionsItemSelected(item);

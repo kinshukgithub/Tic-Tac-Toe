@@ -9,12 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-
-import androidsamples.java.tictactoe.models.GameModel;
 
 public class OpenGamesAdapter extends RecyclerView.Adapter<OpenGamesAdapter.ViewHolder> {
 
@@ -22,6 +19,7 @@ public class OpenGamesAdapter extends RecyclerView.Adapter<OpenGamesAdapter.View
   private NavController navController;
 
   public OpenGamesAdapter(ArrayList<GameModel> list, NavController navController) {
+    // FIXME if needed
     this.list = list;
     this.navController = navController;
   }
@@ -30,18 +28,20 @@ public class OpenGamesAdapter extends RecyclerView.Adapter<OpenGamesAdapter.View
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     View view = LayoutInflater.from(parent.getContext())
-        .inflate(R.layout.fragment_item, parent, false);
+            .inflate(R.layout.fragment_item, parent, false);
     return new ViewHolder(view);
   }
 
   @Override
   public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+    // TODO bind the item at the given position to the holder
     holder.populate(list.get(position).getGameId(), position + 1, navController);
+
   }
 
   @Override
   public int getItemCount() {
-    return list.size();
+    return list.size(); // FIXME
   }
 
   public class ViewHolder extends RecyclerView.ViewHolder {
@@ -70,5 +70,9 @@ public class OpenGamesAdapter extends RecyclerView.Adapter<OpenGamesAdapter.View
         Navigation.findNavController(mView).navigate(action);
       });
     }
+
+
   }
+
+
 }
