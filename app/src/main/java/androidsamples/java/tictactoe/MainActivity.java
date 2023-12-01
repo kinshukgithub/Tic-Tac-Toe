@@ -13,8 +13,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class MainActivity extends AppCompatActivity {
 
-  public static final String rtdb_url = "https://shashank-dhruv-tictactoe-default-rtdb.firebaseio.com/";
-
+  //public static final String rtdb_url = "https://shashank-dhruv-tictactoe-default-rtdb.firebaseio.com/";
+  public static final String rtdb_url = "https://tik-tak-toe-1aa56-default-rtdb.firebaseio.com/";
   private static final String TAG = "MainActivity";
 
   @Override
