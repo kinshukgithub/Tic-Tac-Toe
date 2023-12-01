@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,11 +17,29 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Objects;
+
+import androidsamples.java.tictactoe.models.GameModel;
 
 public class DashboardFragment extends Fragment {
 
   private static final String TAG = "DashboardFragment";
   private NavController mNavController;
+  private FirebaseAuth auth;
+  private DatabaseReference gamesRef, usersRef;
+  private RecyclerView rv;
+  private TextView won, lost, info;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -35,6 +54,7 @@ public class DashboardFragment extends Fragment {
     Log.d(TAG, "onCreate");
 
     setHasOptionsMenu(true); // Needed to display the action menu for this fragment
+    gamesRef = FirebaseDatabase.getInstance("https://tictactoe-mohit-shivam-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("games");
   }
 
   @Override
@@ -49,7 +69,49 @@ public class DashboardFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
     mNavController = Navigation.findNavController(view);
 
-    // TODO if a user is not logged in, go to LoginFragment
+    rv = view.findViewById(R.id.list);
+    info = view.findViewById(R.id.open_display);
+    //if a user is not logged in, go to LoginFragment
+
+    auth = FirebaseAuth.getInstance();
+    if(auth.getCurrentUser() == null) {
+      mNavController.navigate(R.id.action_need_auth);
+      return;
+    }
+
+    usersRef = FirebaseDatabase.getInstance("https://tictactoe-mohit-shivam-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+    ArrayList<GameModel> gameList = new ArrayList<>();
+    gamesRef.addValueEventListener(new ValueEventListener() {
+      @Override
+      public void onDataChange(@NonNull DataSnapshot snapshot) {
+        gameList.clear();
+        for (DataSnapshot shot : snapshot.getChildren()) {
+          GameModel game = shot.getValue(GameModel.class);
+          if (game.getIsOpen() && !game.getHost().equals(auth.getCurrentUser().getUid())) gameList.add(game);
+        }
+        rv.setAdapter(new OpenGamesAdapter(gameList, mNavController));
+        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+        info.setText(gameList.isEmpty() ? "No Open Games Available :(" : "Open Games");
+      }
+
+      @Override
+      public void onCancelled(@NonNull DatabaseError error) {
+
+      }
+    });
+
+    usersRef.addValueEventListener(new ValueEventListener() {
+      @Override
+      public void onDataChange(@NonNull DataSnapshot snapshot) {
+//        won.setText("Objects.requireNonNull(snapshot.child("won").getValue()).toString()");
+//        lost.setText("Objects.requireNonNull(snapshot.child("lost").getValue()).toString()");
+      }
+
+      @Override
+      public void onCancelled(@NonNull DatabaseError error) {
+
+      }
+    });
 
     // Show a dialog when the user clicks the "new game" button
     view.findViewById(R.id.fab_new_game).setOnClickListener(v -> {
@@ -57,8 +119,13 @@ public class DashboardFragment extends Fragment {
       // A listener for the positive and negative buttons of the dialog
       DialogInterface.OnClickListener listener = (dialog, which) -> {
         String gameType = "No type";
+        String gameId = "Single Game ID";
         if (which == DialogInterface.BUTTON_POSITIVE) {
           gameType = getString(R.string.two_player);
+          gameId = gamesRef.push().getKey();
+          assert gameId != null;
+          gamesRef.child(gameId).setValue(new GameModel(FirebaseAuth.getInstance().getCurrentUser().getUid(), gameId));
+          Log.i("FIREBASE", "Value set");
         } else if (which == DialogInterface.BUTTON_NEGATIVE) {
           gameType = getString(R.string.one_player);
         }
@@ -66,7 +133,7 @@ public class DashboardFragment extends Fragment {
 
         // Passing the game type as a parameter to the action
         // extract it in GameFragment in a type safe way
-        NavDirections action = DashboardFragmentDirections.actionGame(gameType);
+        NavDirections action = DashboardFragmentDirections.actionGame(gameType, gameId);
         mNavController.navigate(action);
       };//eufbwige,kruli
             // create the dialog

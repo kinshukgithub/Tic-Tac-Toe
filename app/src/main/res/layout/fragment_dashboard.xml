@@ -7,35 +7,39 @@
     android:layout_height="match_parent"
     tools:context=".DashboardFragment">
 
-  <TextView
-      android:id="@+id/txt_score"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/placeholder"
-      android:textAppearance="@style/TextAppearance.AppCompat.Large"
-      app:layout_constraintBottom_toTopOf="@+id/list"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/list_ll"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/open_games"
+            android:id="@+id/open_display"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:layout_margin="20dp"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="LinearLayoutManager"
+            tools:listitem="@layout/fragment_item" />
+    </LinearLayout>
 
-  <androidx.recyclerview.widget.RecyclerView
-      android:id="@+id/list"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      app:layoutManager="LinearLayoutManager"
-
-      app:layout_constraintBottom_toBottomOf="parent"
-      tools:layout_editor_absoluteX="16dp"
-      tools:listitem="@layout/fragment_item" />
-
-
-  <com.google.android.material.floatingactionbutton.FloatingActionButton
-      android:id="@+id/fab_new_game"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_margin="@dimen/text_margin"
-      android:contentDescription="@string/new_game"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:srcCompat="@android:drawable/ic_input_add" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_new_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/text_margin"
+        android:contentDescription="@string/new_game"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_input_add" />
 </androidx.constraintlayout.widget.ConstraintLayout>
