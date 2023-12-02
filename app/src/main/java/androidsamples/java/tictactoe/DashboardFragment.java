@@ -97,8 +97,7 @@ public class DashboardFragment extends Fragment {
           // Convert the DataSnapshot to a GameModel object
           GameModel game = shot.getValue(GameModel.class);
           // Check if the game is open and not the single game ID and not hosted by the current user
-          if (game.getIsOpen() && !Objects.equals(shot.getKey(), "Single Game ID") && !game.getHost().equals(auth.getCurrentUser().getUid()))
-            gameList.add(game);
+          if (game.getIsOpen() && !Objects.equals(shot.getKey(), "Single Game ID") && !game.getHost().equals(auth.getCurrentUser().getUid())) gameList.add(game);
         }
         // Set up the RecyclerView with the list of open games
         rv.setAdapter(new OpenGamesAdapter(gameList, mNavController));
