@@ -1,0 +1,86 @@
+[
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/layout_fragment_item.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/layout/fragment_item.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-xhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/navigation_nav_graph.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/navigation/nav_graph.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/drawable_ic_launcher_background.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/menu_menu_logout.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/menu/menu_logout.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/layout_fragment_game.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/layout/fragment_game.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/layout_fragment_dashboard.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/layout/fragment_dashboard.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/layout_fragment_login.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/layout/fragment_login.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/layout_activity_main.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/layout/activity_main.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-xxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/drawable-anydpi-v24_ic_launcher_foreground.xml.flat",
+        "source": "androidsamples.java.tictactoe.app-pngs-48:/drawable-anydpi-v24/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-hdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "androidsamples.java.tictactoe.app-merged_res-53:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "androidsamples.java.tictactoe.app-main-55:/mipmap-xxhdpi/ic_launcher.png"
+    }
+]

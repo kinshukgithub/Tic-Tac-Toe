@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "androidsamples.java.tictactoe.app-mergeDebugResources-51:/values-watch-v21/values-watch-v21.xml",
+            "map": [
+                {
+                    "source": "/Users/hardaatsinghbaath/.gradle/caches/transforms-3/aba1d7bde4cdcc67d7d81c3d9b1a2949/transformed/appcompat-1.6.1/res/values-watch-v21/values-watch-v21.xml",
+                    "from": {
+                        "startLines": "2,6,10",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,271,499",
+                        "endLines": "5,9,13",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "266,494,724"
+                    }
+                }
+            ]
+        }
+    ]
+}
