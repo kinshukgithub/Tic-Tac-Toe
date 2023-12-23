@@ -24,13 +24,6 @@
   <string name="yes">Yes</string>
   <string name="cancel">Cancel</string>
   <string name="confirm">Confirm</string>
-  <string name="open_games">Open Games</string>
-  <string name="won_score">won_score</string>
-  <string name="won">Games won</string>
-  <string name="num_won">0</string>
-  <string name="num_lost">0</string>
-  <string name="string_lost">Games lost</string>
-
   <string name="your_turn">Your turn</string>
   <string name="waiting">Waiting</string>
   <string name="you_win">You Win</string>
@@ -39,8 +32,10 @@
   <string name="quit">Quit</string>
   <string name="go_back">Go back</string>
   <string name="error">Error</string>
+    <string name="won">WON</string>
   <string name="lost">LOST</string>
   <string name="_0">0</string>
+    <string name="open_games">Open Games</string>
   <string name="_1">#1</string>
   <string name="lmao_game">lmao game</string>
 </resources>

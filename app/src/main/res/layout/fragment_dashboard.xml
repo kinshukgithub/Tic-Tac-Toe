@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".DashboardFragment">
+
     <LinearLayout
         android:id="@+id/txt_score"
         android:layout_width="match_parent"
@@ -26,16 +27,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="32sp"
-                android:text="@string/num_won"
-                android:textAlignment="center"
-                android:textColor="@color/black"/>
+                android:text="@string/_0"
+                android:textAlignment="center"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/won"
                 android:textAlignment="center"
-                android:textColor="#2E7D32"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -49,16 +48,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="32sp"
-                android:text="@string/num_lost"
-                android:textAlignment="center"
-                android:textColor="@color/black"/>
+                android:text="@string/_0"
+                android:textAlignment="center"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/string_lost"
+                android:text="@string/lost"
                 android:textAlignment="center"
-                android:textColor="#DD2C00"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -80,7 +77,6 @@
             android:text="@string/open_games"
             android:id="@+id/open_display"
             android:textAlignment="center"
-            android:textColor="@color/black"
             android:textSize="18sp"
             android:layout_margin="20dp"/>
         <androidx.recyclerview.widget.RecyclerView
@@ -97,7 +93,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
         android:contentDescription="@string/new_game"
-        app:backgroundTint="#3F51B5"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_input_add" />
